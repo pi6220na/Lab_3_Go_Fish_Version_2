@@ -69,7 +69,7 @@ public class Main {
     static int cardsRemaining = 52;
     static int bookCount = 13;              // 13 books of 4 cards in a deck,
                                             // used to track end of game when equal to zero
-    static boolean deBug = true;           // testing flag used to output game state information
+    static boolean deBug = false;           // testing flag used to output game state information
     static boolean autoPlay = true;         // used for testing - computer picks card for player
 
     public static void main(String[] args) {
