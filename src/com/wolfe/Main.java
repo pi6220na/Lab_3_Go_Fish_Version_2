@@ -69,7 +69,8 @@ public class Main {
     static int cardsRemaining = 52;
     static int bookCount = 13;              // 13 books of 4 cards in a deck,
                                             // used to track end of game when equal to zero
-    static boolean deBug = false;           // testing flag used to output game state information
+    static boolean validCard = false;       // used to verify player holding requested card
+    static boolean deBug = true;           // testing flag used to output game state information
     static boolean autoPlay = true;         // used for testing - computer picks card for player
 
     public static void main(String[] args) {
@@ -136,8 +137,14 @@ public class Main {
                  " player books = " + playerBookCount + " computer books = " + computerBookCount);
 
 
-                // player or computer asks for a card
-                String requestedCard = playerAskOpponentForCard(playerTurnFlag, cHandMap, pHandMap);
+                String requestedCard = " ";
+
+                // player or computer asks for a card if they have card(s) in their hand
+                if ( (playerTurnFlag.equals("p") && !pHandMap.isEmpty())
+                        ||
+                        (playerTurnFlag.equals("c") && !cHandMap.isEmpty()) ) {
+                    requestedCard = playerAskOpponentForCard(playerTurnFlag, cHandMap, pHandMap);
+                }
 
                 /* opponent looks for match, if found, gives player the card(s)
                    if not found, method tells player to go fish */
@@ -309,7 +316,12 @@ public class Main {
                 System.out.println("destArray = " + destArray);
             }
 
-            if (destArray != null) {
+            if (destArray == null) {
+                for ( String test : sourceArray ) {
+                    destArray.add(test);
+                }
+                pHandMap.put(requestCard, destArray);   // add new key, value pair to HashMap
+            } else {  // add item to existing ArrayList
                 for ( String test : sourceArray ) {
                     destArray.add(test);
                 }
@@ -329,7 +341,12 @@ public class Main {
                 System.out.println("sourceArray.size() = " + sourceArray.size());
             }
 
-            if (sourceArray != null) {
+            if (destArray == null) {
+                for ( String test : sourceArray ) {
+                    destArray.add(test);
+                }
+                cHandMap.put(requestCard, destArray);   // add new key, value pair to HashMap
+            } else {  // add item to existing ArrayList
                 for ( String test : sourceArray ) {
                     destArray.add(test);
                 }
@@ -340,7 +357,8 @@ public class Main {
         if (deBug) {
             System.out.println("After transfer");
             System.out.println("Player hand = " + pHandMap);
-            System.out.println("Computer hand = " + cHandMap);
+            System.out.println("Computer hand = "
+                    + cHandMap);
         }
     }
 
@@ -432,24 +450,30 @@ public class Main {
     // or... if they don't have the last card drawn rank, ask for that rank
     private static String playerAskOpponentForCard(String flag, HashMap<String, ArrayList<String>> cHandMap,
                                                                 HashMap<String, ArrayList<String>> pHandMap) {
+        String requestCard = " ";
+
         if (flag.equals("p")){
             if (autoPlay && bookCount >= 3) {
                 System.out.print("Player Auto Request: ");
-                String requestCard = computeRequest(pHandMap);
+                requestCard = computeRequest(pHandMap);
                 System.out.println(requestCard);
                 System.out.println("Player asks: Computer, do you have a " + requestCard + "?");
                 return requestCard;
             } else {
-                System.out.println("Player: What card (rank) would you like?");
-                System.out.println("Player: Enter a single digit alphanumeric:");
-                String requestCard = stringScanner.nextLine();
+                do { // force player to be honest asking for card in player's hand
+                    System.out.println("Player: What card (rank) would you like?");
+                    System.out.println("Player: Enter a single digit alphanumeric:");
+                    requestCard = stringScanner.nextLine();
+                    requestCard = requestCard.toUpperCase();
+                    validCard = pHandMap.containsKey(requestCard);
+                } while (!validCard);
                 System.out.println();
                 System.out.println("Player asks: Computer, do you have a " + requestCard + "?");
-                requestCard = requestCard.toUpperCase();
+  //              requestCard = requestCard.toUpperCase();
                 return requestCard;
             }
         } else {
-            String requestCard = computeRequest(cHandMap);
+            requestCard = computeRequest(cHandMap);
             System.out.println();
             System.out.println("Computer asks: Player, do you have a " + requestCard + "?");
             return requestCard;
@@ -470,7 +494,11 @@ public class Main {
                 return key;
             }
         }
-        return key;
+        if (key == null) {
+            return " ";
+        } else {
+            return key;
+        }
     }
 
     // deal seven cards to each player and populate the HashMap
