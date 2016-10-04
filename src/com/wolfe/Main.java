@@ -73,6 +73,10 @@ public class Main {
     static boolean deBug = true;           // testing flag used to output game state information
     static boolean autoPlay = true;         // used for testing - computer picks card for player
 
+    // Clara suggested improvements noted with CI comments
+    static String PLAYER = "p";             // human player     CI
+    static String COMPUTER = "c";           // computer player      CI
+
     public static void main(String[] args) {
 
         // playing card data structures:
@@ -110,7 +114,7 @@ public class Main {
 
             deck = initializeGame(initialDeck, pHandMap, cHandMap, pBookMap, cBookMap);
 
-            String playerTurnFlag = "p";    // p = human, c = computer
+            String playerTurnFlag = PLAYER;     // human gets to go first
 
 
             // computer shuffles the deck and deals seven cards to each player
@@ -122,7 +126,7 @@ public class Main {
             // inner game play do-while loop until all books formed (book count = 0)
             // player and computer alternate turns based on playerTurnFlag
             do {
-                if (playerTurnFlag.equals("p")) {
+                if (playerTurnFlag.equals(PLAYER)) {
                     System.out.println("*************  Start Player's   Turn  ****************");
                 } else {
                     System.out.println("*************  Start Computer's Turn  ****************");
@@ -140,9 +144,11 @@ public class Main {
                 String requestedCard = " ";
 
                 // player or computer asks for a card if they have card(s) in their hand
-                if ( (playerTurnFlag.equals("p") && !pHandMap.isEmpty())
+                // bug fix - added if statement - if the player doesn't have any cards in their hand
+                // don't attempt to ask opponent for a card (must have card being asked for)
+                if ( (playerTurnFlag.equals(PLAYER) && !pHandMap.isEmpty())
                         ||
-                        (playerTurnFlag.equals("c") && !cHandMap.isEmpty()) ) {
+                        (playerTurnFlag.equals(COMPUTER) && !cHandMap.isEmpty()) ) {
                     requestedCard = playerAskOpponentForCard(playerTurnFlag, cHandMap, pHandMap);
                 }
 
@@ -172,7 +178,7 @@ public class Main {
                         if (deck.size() > 0) {
                             newCardDealt = dealOneCard(deck);
 
-                            if (playerTurnFlag.equals("p")) {
+                            if (playerTurnFlag.equals(PLAYER)) {
                                 addCardToHand(newCardDealt, pHandMap);
                             } else {
                                 addCardToHand(newCardDealt, cHandMap);
@@ -193,8 +199,8 @@ public class Main {
                         }
                     }
                 }
-                checkForBook("p", pHandMap, pBookMap);
-                checkForBook("c", cHandMap, cBookMap);
+                checkForBook(PLAYER, pHandMap, pBookMap);
+                checkForBook(COMPUTER, cHandMap, cBookMap);
              }
             // check book count, if 0 end game
             while (bookCount > 0);
@@ -203,7 +209,7 @@ public class Main {
             playerChoice = getPlayerContinue();
 
         } // end main game loop
-        while (playerChoice.equals("y") || playerChoice.equals("Y"));
+        while (playerChoice.equalsIgnoreCase("y"));             // CI
 
         // Close scanners. Good practice to clean up resources you use.
         // Don't try to use scanners after this point. All code that uses scanners goes above here.
@@ -270,11 +276,7 @@ public class Main {
     // flip value of player turn flag
     private static String flipPlayerTurn(String flag) {
         System.out.println("Flipping player turn");
-        if (flag.equals("p")) {
-            return "c";
-        } else {
-            return "p";
-        }
+        return flag.equals(PLAYER) ? COMPUTER : PLAYER;         // CI
     }
 
     // deal one card to current player and decrement card count (remove card from pool)
@@ -304,7 +306,7 @@ public class Main {
             System.out.println("requestCard = " + requestCard);
         }
 
-        if (flag.equals("p")) {
+        if (flag.equals(PLAYER)) {
             // get card(s) from computer's hand
             // attempt to get existing key in map
             ArrayList<String> sourceArray = cHandMap.get(requestCard);
@@ -393,7 +395,7 @@ public class Main {
                     bookMap.put(key, newList);   // add new key, value pair to HashMap
                     iter.remove();
                     bookCount--;
-                    if (flag.equals("p")) {
+                    if (flag.equals(PLAYER)) {
                         playerBookCount++;
                     } else {
                         computerBookCount++;
@@ -425,7 +427,7 @@ public class Main {
             System.out.println("requestCard = " + requestCard);
         }
 
-        if (playerFlag.equals("p")){
+        if (playerFlag.equals(PLAYER)){
             boolean keyFound = cHandMap.containsKey(requestCard);
             if (keyFound) {
                 System.out.println("Computer replies: Here is your card");
@@ -452,7 +454,7 @@ public class Main {
                                                                 HashMap<String, ArrayList<String>> pHandMap) {
         String requestCard = " ";
 
-        if (flag.equals("p")){
+        if (flag.equals(PLAYER)){
             if (autoPlay && bookCount >= 3) {
                 System.out.print("Player Auto Request: ");
                 requestCard = computeRequest(pHandMap);
@@ -494,11 +496,9 @@ public class Main {
                 return key;
             }
         }
-        if (key == null) {
-            return " ";
-        } else {
-            return key;
-        }
+
+        return key;                 // CI
+
     }
 
     // deal seven cards to each player and populate the HashMap
